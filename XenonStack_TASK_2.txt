@@ -1,0 +1,174 @@
+Page 1: Home Page
+HTML (index.html):
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>College/Uni App</title>
+</head>
+<body>
+    <header>
+        <h1>Welcome to College/Uni App</h1>
+    </header>
+    <section>
+        <p>Explore a new way of managing your college/university life with our app. Connect, collaborate, and stay organized!</p>
+        <a href="login.html" class="cta-button">Login</a>
+    </section>
+    <footer>
+        <p>&copy; 2023 College/Uni App</p>
+    </footer>
+</body>
+</html>
+
+CSS (styles.css):
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+header, section, footer {
+    text-align: center;
+    padding: 20px;
+}
+
+.cta-button {
+    display: inline-block;
+    padding: 10px 20px;
+    margin-top: 20px;
+    background-color: #3498db;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+footer {
+    background-color: #2c3e50;
+    color: #fff;
+}
+Page 2: Login Page
+HTML (login.html):
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Login - College/Uni App</title>
+</head>
+<body>
+    <header>
+        <h1>Login to College/Uni App</h1>
+    </header>
+    <section>
+        <form action="/login" method="post">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Login</button>
+        </form>
+    </section>
+    <footer>
+        <p>&copy; 2023 College/Uni App</p>
+    </footer>
+</body>
+</html>
+Page 3: Contact Us Page
+HTML (contact.html):
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Contact Us - College/Uni App</title>
+</head>
+<body>
+    <header>
+        <h1>Contact Us</h1>
+    </header>
+    <section>
+        <form action="/contact" method="post">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="message">Message:</label>
+            <textarea id="message" name="message" rows="4" required></textarea>
+
+            <button type="submit">Submit</button>
+        </form>
+    </section>
+    <footer>
+        <p>&copy; 2023 College/Uni App</p>
+    </footer>
+</body>
+</html>
+Backend (NodeJS):
+Sample backend (app.js):
+const express = require('express');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/collegeuniapp', { useNewUrlParser: true, useUnifiedTopology: true });
+
+// Define MongoDB schema and model (for Contact Us form)
+const contactSchema = new mongoose.Schema({
+    name: String,
+    email: String,
+    message: String
+});
+
+const Contact = mongoose.model('Contact', contactSchema);
+
+// Middleware setup
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static('public'));
+
+// Routes
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
+
+app.get('/login', (req, res) => {
+    res.sendFile(__dirname + '/login.html');
+});
+
+app.get('/contact', (req, res) => {
+    res.sendFile(__dirname + '/contact.html');
+});
+
+app.post('/contact', (req, res) => {
+    // Create a new contact instance and save to the database
+    const newContact = new Contact({
+        name: req.body.name,
+        email: req.body.email,
+        message: req.body.message
+    });
+
+    newContact.save((err) => {
+        if (err) {
+            console.error(err);
+            res.send('Error saving contact information.');
+        } else {
+            res.send('Contact information saved successfully.');
+        }
+    });
+});
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
+
+
