@@ -1,0 +1,140 @@
+
+
+#  new user on macOS
+create_user() {
+    if [ -z "$1" ]; then
+        echo "error: missing username,use './internsctl.sh user create <username>' to  new user."
+        exit 1
+    fi
+
+    # Check user already exist
+    if id "$1" &>/dev/null; then
+        echo "error: user '$1' already exist."
+        exit 1
+    fi
+
+    # Create  new user
+    sudo dscl . -create /Users/"$1"
+    sudo dscl . -create /Users/"$1" UserShell /bin/bash
+    sudo dscl . -create /Users/"$1" UniqueID "1001"
+    sudo dscl . -create /Users/"$1" PrimaryGroupID "20"
+    sudo dscl . -create /Users/"$1" NFSHomeDirectory "/Users/$1"
+
+    #password for  user
+    sudo dscl . -passwd /Users/"$1"
+}
+
+# display help
+display_help() {
+    echo "Usage: internsctl [OPTIONS] COMMAND [ARGUMENTS]"
+    echo "Custom Linux command for operations."
+    echo
+    echo "Options:"
+    echo "  --help     Display this help and exit"
+    echo "  --version  Output the version and exit"
+    echo
+    echo "Commands:"
+    echo "  user       User management commands"
+    echo "  file       File information commands"
+    echo
+    echo "User Commands:"
+    echo "  create     Create a new user"
+    echo "  list       List all regular users"
+    echo "  list       List all users with sudo permissions"
+    echo
+    echo "File Commands:"
+    echo "  getinfo    Get information about a file"
+    echo
+    echo "Examples:"
+    echo "  internsctl user create <username>"
+    echo "  internsctl user list"
+    echo "  internsctl user list --sudo-only"
+    echo "  internsctl file getinfo <file-name>"
+    echo
+    echo "For more information, see the manual page: 'man internsctl'"
+    echo
+}
+
+#display version
+display_version() {
+    echo "internsctl v0.1.0"
+}
+
+# create a new user
+create_user() {
+    if [ -z "$1" ]; then
+        echo "Error: Missing username. Use 'internsctl user create <username>' to create a new user."
+        exit 1
+    fi
+
+    sudo useradd -m "$1"
+    sudo passwd "$1"
+}
+
+# list all regular users
+list_users() {
+    cut -d: -f1,3 /etc/passwd | awk -F: '$2 >= 1000 && $2 != 65534 {print $1}'
+}
+
+#listing users with sudo permissions
+list_sudo_users() {
+    getent group sudo | cut -d: -f4 | tr ',' '\n'
+}
+
+# get file information
+get_file_info() {
+    if [ -z "$1" ]; then
+        echo "error: missing filename,use 'internsctl file getinfo <file-name>' to get file information."
+        exit 1
+    fi
+
+    stat --format="File: %n%nAccess: %a%nSize(B): %s%nOwner: %U" "$1"
+}
+
+# command-line arguments
+if [ "$#" -eq 0 ]; then
+    echo "error: missing command-line arguments,use 'internsctl --help' for usage information."
+    exit 1
+fi
+
+# command-line arguments
+case "$1" in
+    --help)
+        display_help
+        ;;
+    --version)
+        display_version
+        ;;
+    user)
+        case "$2" in
+            create)
+                create_user "$3"
+                ;;
+            list)
+                list_users
+                ;;
+            list|--sudo-only)
+                list_sudo_users
+                ;;
+            *)
+                echo "Error: Invalid subcommand. Use 'internsctl user --help' for user commands."
+                exit 1
+                ;;
+        esac
+        ;;
+    file)
+        case "$2" in
+            getinfo)
+                get_file_info "$3"
+                ;;
+            *)
+                echo "Error: Invalid subcommand. Use 'internsctl file --help' for file commands."
+                exit 1
+                ;;
+        esac
+        ;;
+    *)
+        echo "Error: Invalid option. Use 'internsctl --help' for usage information."
+        exit 1
+        ;;
+esac

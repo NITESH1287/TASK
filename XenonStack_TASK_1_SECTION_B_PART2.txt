@@ -1,0 +1,66 @@
+#section B PART 2
+#bash
+# here is the function  create new user
+function user() {
+    if [ -z "$1" ]; then
+        echo "error: missing username,usage: internsctl user create <username>"
+        exit 1
+    fi
+
+    sudo useradd -m -s /bin/bash "$1"
+    echo "user '$1' created successfully."
+}
+
+#here is the function  listing  whole regular users
+function regular_users() {
+    cut -d: -f1,3 /etc/passwd | awk -F: '$2 >= 1000 && $2 != 65534 {print $1}'
+}
+
+#here is the function to listing  users for sudo permissions
+function sudo_users() {
+    getent group sudo | cut -d: -f4 | tr ',' '\n'
+}
+
+
+if [ $# -eq 0 ]; then
+    echo "error: missing option,use 'internsctl --help' for usage information."
+    exit 1
+fi
+
+# logic
+case "$1" in
+    user)
+        case "$2" in
+            create)
+                user "$3"
+                ;;
+            list)
+                if [ "$3" == "--sudo-only" ]; then
+                    sudo_users
+                else
+                    regular_users
+                fi
+                ;;
+            *)
+                echo "eerror: unknown option for 'user',use 'internsctl user create <username>' or 'internsctl user list [--sudo-only]'."
+                exit 1
+                ;;
+        esac
+        ;;
+    --help)
+        echo "usage: internsctl user create <username>"
+        echo "       internsctl user list [--sudo-only]"
+        ;;
+    *)
+        echo "error: unknown option,use 'internsctl --help' for usage information."
+        exit 1
+        ;;
+esac
+
+
+#for create  new user:
+#./internsctl user create <username>
+#for list all regular users:
+#./internsctl user list
+#to list users with sudo permissions:
+#./internsctl user list --sudo-only

@@ -1,0 +1,80 @@
+#section B part 3
+#here is the function for file info
+function file_info() {
+    local file="$1"
+
+    if [ ! -e "$file" ]; then
+        echo "error: file '$file' not found."
+        exit 1
+    fi
+
+    local size=$(stat --format=%s "$file")
+    local permissions=$(stat --format=%A "$file")
+    local owner=$(stat --format=%U "$file")
+    local last_modified=$(stat --format=%y "$file")
+
+    echo "File: $file"
+    echo "Access: $permissions"
+    echo "Size(B): $size"
+    echo "Owner: $owner"
+    echo "Modify: $last_modified"
+}
+
+#here we are  checking for command line
+if [ $# -eq 0 ]; then
+    echo "error: missing option,use 'internsctl --help' for usage information."
+    exit 1
+fi
+
+#logic
+case "$1" in
+    file)
+        case "$2" in
+            getinfo)
+                shift 2
+                while [ $# -gt 0 ]; do
+                    case "$1" in
+                        --size | -s)
+                            file_info "$2" | grep -oP '(?<=Size\(B\): )\d+'
+                            ;;
+                        --permissions | -p)
+                            file_info "$2" | grep -oP '(?<=Access: )\S+'
+                            ;;
+                        --owner | -o)
+                            file_info "$2" | grep -oP '(?<=Owner: )\S+'
+                            ;;
+                        --last-modified | -m)
+                            file_info "$2" | grep -oP '(?<=Modify: )(.+)'
+                            ;;
+                        *)
+                            file_info "$1"
+                            ;;
+                    esac
+                    shift
+                done
+                ;;
+            *)
+                echo "error: unknown option for 'file',use 'internsctl file getinfo [options] <file-name>'."
+                exit 1
+                ;;
+        esac
+        ;;
+    --help)
+        echo "usage: internsctl file getinfo [options] <file-name>"
+        echo "options:"
+        echo "  --size, -s          Print file size"
+        echo "  --permissions, -p  Print file permissions"
+        echo "  --owner, -o        Print file owner"
+        echo "  --last-modified, -m Print last modified time"
+        ;;
+    *)
+        echo "error: unknown option,use 'internsctl --help' for usage information."
+        exit 1
+        ;;
+esac
+
+
+#for  file information:
+#./internsctl file getinfo <file-name>
+#for  specific file information:
+#./internsctl file getinfo [options] <file-name>

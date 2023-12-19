@@ -1,0 +1,49 @@
+#SECTION B PART 1
+#bash
+#here is the function for CPU info
+function cpu_info() {
+    lscpu
+}
+
+# here is the function for memory info
+function memory_info() {
+    free -h
+}
+
+#here we are  Checking command-line arguments
+if [ $# -eq 0 ]; then
+    echo "error: missing option,use 'internsctl --help' for usage information."
+    exit 1
+fi
+
+# here is the logic
+case "$1" in
+    cpu)
+        if [ "$2" == "getinfo" ]; then
+            cpu_info
+        else
+            echo "error: unknown option for 'cpu'. use 'internsctl cpu getinfo'."
+            exit 1
+        fi
+        ;;
+    memory)
+        if [ "$2" == "getinfo" ]; then
+            memory_info
+        else
+            echo "error: unknown option for 'memory', use 'internsctl memory getinfo'."
+            exit 1
+        fi
+        ;;
+    --help)
+        echo "usage: internsctl [cpu|memory] getinfo"
+        ;;
+    *)
+        echo "error: unknown option,use 'internsctl --help' for usage information."
+        exit 1
+        ;;
+esac
+
+#for CPU information:
+#./internsctl cpu getinfo
+#for memory information:
+#./internsctl memory getinfo
